@@ -1,0 +1,3246 @@
+%!PS-Adobe-3.0
+%%BoundingBox: 38 24 574 768
+%%Title: Listing-oc.ps
+%%For: Wesley Mackey
+%%Creator: GNU enscript 1.6.4
+%%CreationDate: Thu Oct 23 15:07:56 2014
+%%Orientation: Portrait
+%%Pages: (atend)
+%%DocumentMedia: Letter 612 792 0 () ()
+%%DocumentNeededResources: (atend)
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset Enscript-Prolog 1.6 4
+%
+% Procedures.
+%
+
+/_S {	% save current state
+  /_s save def
+} def
+/_R {	% restore from saved state
+  _s restore
+} def
+
+/S {	% showpage protecting gstate
+  gsave
+  showpage
+  grestore
+} bind def
+
+/MF {	% fontname newfontname -> -	make a new encoded font
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  % insert only valid encoding vectors
+  encoding_vector length 256 eq {
+    newfont /Encoding encoding_vector put
+  } if
+
+  newfontname newfont definefont pop
+} def
+
+/MF_PS { % fontname newfontname -> -	make a new font preserving its enc
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  newfontname newfont definefont pop
+} def
+
+/SF { % fontname width height -> -	set a new font
+  /height exch def
+  /width exch def
+
+  findfont
+  [width 0 0 height 0 0] makefont setfont
+} def
+
+/SUF { % fontname width height -> -	set a new user font
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF
+  /F-gs-user-font width height SF
+} def
+
+/SUF_PS { % fontname width height -> -	set a new user font preserving its enc
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF_PS
+  /F-gs-user-font width height SF
+} def
+
+/M {moveto} bind def
+/s {show} bind def
+
+/Box {	% x y w h -> -			define box path
+  /d_h exch def /d_w exch def /d_y exch def /d_x exch def
+  d_x d_y  moveto
+  d_w 0 rlineto
+  0 d_h rlineto
+  d_w neg 0 rlineto
+  closepath
+} def
+
+/bgs {	% x y height blskip gray str -> -	show string with bg color
+  /str exch def
+  /gray exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    gray setgray
+    fill
+  grestore
+  x y M str s
+} def
+
+/bgcs { % x y height blskip red green blue str -> -  show string with bg color
+  /str exch def
+  /blue exch def
+  /green exch def
+  /red exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    red green blue setrgbcolor
+    fill
+  grestore
+  x y M str s
+} def
+
+% Highlight bars.
+/highlight_bars {	% nlines lineheight output_y_margin gray -> -
+  gsave
+    setgray
+    /ymarg exch def
+    /lineheight exch def
+    /nlines exch def
+
+    % This 2 is just a magic number to sync highlight lines to text.
+    0 d_header_y ymarg sub 2 sub translate
+
+    /cw d_output_w cols div def
+    /nrows d_output_h ymarg 2 mul sub lineheight div cvi def
+
+    % for each column
+    0 1 cols 1 sub {
+      cw mul /xp exch def
+
+      % for each rows
+      0 1 nrows 1 sub {
+        /rn exch def
+        rn lineheight mul neg /yp exch def
+        rn nlines idiv 2 mod 0 eq {
+	  % Draw highlight bar.  4 is just a magic indentation.
+	  xp 4 add yp cw 8 sub lineheight neg Box fill
+	} if
+      } for
+    } for
+
+  grestore
+} def
+
+% Line highlight bar.
+/line_highlight {	% x y width height gray -> -
+  gsave
+    /gray exch def
+    Box gray setgray fill
+  grestore
+} def
+
+% Column separator lines.
+/column_lines {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h translate
+    /cw d_output_w cols div def
+    1 1 cols 1 sub {
+      cw mul 0 moveto
+      0 d_output_h rlineto stroke
+    } for
+  grestore
+} def
+
+% Column borders.
+/column_borders {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h moveto
+    0 d_output_h rlineto
+    d_output_w 0 rlineto
+    0 d_output_h neg rlineto
+    closepath stroke
+  grestore
+} def
+
+% Do the actual underlay drawing
+/draw_underlay {
+  ul_style 0 eq {
+    ul_str true charpath stroke
+  } {
+    ul_str show
+  } ifelse
+} def
+
+% Underlay
+/underlay {	% - -> -
+  gsave
+    0 d_page_h translate
+    d_page_h neg d_page_w atan rotate
+
+    ul_gray setgray
+    ul_font setfont
+    /dw d_page_h dup mul d_page_w dup mul add sqrt def
+    ul_str stringwidth pop dw exch sub 2 div ul_h_ptsize -2 div moveto
+    draw_underlay
+  grestore
+} def
+
+/user_underlay {	% - -> -
+  gsave
+    ul_x ul_y translate
+    ul_angle rotate
+    ul_gray setgray
+    ul_font setfont
+    0 0 ul_h_ptsize 2 div sub moveto
+    draw_underlay
+  grestore
+} def
+
+% Page prefeed
+/page_prefeed {		% bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} def
+
+% Wrapped line markers
+/wrapped_line_mark {	% x y charwith charheight type -> -
+  /type exch def
+  /h exch def
+  /w exch def
+  /y exch def
+  /x exch def
+
+  type 2 eq {
+    % Black boxes (like TeX does)
+    gsave
+      0 setlinewidth
+      x w 4 div add y M
+      0 h rlineto w 2 div 0 rlineto 0 h neg rlineto
+      closepath fill
+    grestore
+  } {
+    type 3 eq {
+      % Small arrows
+      gsave
+        .2 setlinewidth
+        x w 2 div add y h 2 div add M
+        w 4 div 0 rlineto
+        x w 4 div add y lineto stroke
+
+        x w 4 div add w 8 div add y h 4 div add M
+        x w 4 div add y lineto
+	w 4 div h 8 div rlineto stroke
+      grestore
+    } {
+      % do nothing
+    } ifelse
+  } ifelse
+} def
+
+% EPSF import.
+
+/BeginEPSF {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack
+  userdict begin
+  /showpage { } def
+  0 setgray 0 setlinecap
+  1 setlinewidth 0 setlinejoin
+  10 setmiterlimit [ ] 0 setdash newpath
+  /languagelevel where {
+    pop languagelevel
+    1 ne {
+      false setstrokeadjust false setoverprint
+    } if
+  } if
+} bind def
+
+/EndEPSF {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+%%EndResource
+%%BeginResource: procset Enscript-Encoding-88591 1.6 4
+/encoding_vector [
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclam       	/quotedbl     	/numbersign   	
+/dollar       	/percent      	/ampersand    	/quoteright   	
+/parenleft    	/parenright   	/asterisk     	/plus         	
+/comma        	/hyphen       	/period       	/slash        	
+/zero         	/one          	/two          	/three        	
+/four         	/five         	/six          	/seven        	
+/eight        	/nine         	/colon        	/semicolon    	
+/less         	/equal        	/greater      	/question     	
+/at           	/A            	/B            	/C            	
+/D            	/E            	/F            	/G            	
+/H            	/I            	/J            	/K            	
+/L            	/M            	/N            	/O            	
+/P            	/Q            	/R            	/S            	
+/T            	/U            	/V            	/W            	
+/X            	/Y            	/Z            	/bracketleft  	
+/backslash    	/bracketright 	/asciicircum  	/underscore   	
+/quoteleft    	/a            	/b            	/c            	
+/d            	/e            	/f            	/g            	
+/h            	/i            	/j            	/k            	
+/l            	/m            	/n            	/o            	
+/p            	/q            	/r            	/s            	
+/t            	/u            	/v            	/w            	
+/x            	/y            	/z            	/braceleft    	
+/bar          	/braceright   	/tilde        	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclamdown   	/cent         	/sterling     	
+/currency     	/yen          	/brokenbar    	/section      	
+/dieresis     	/copyright    	/ordfeminine  	/guillemotleft	
+/logicalnot   	/hyphen       	/registered   	/macron       	
+/degree       	/plusminus    	/twosuperior  	/threesuperior	
+/acute        	/mu           	/paragraph    	/bullet       	
+/cedilla      	/onesuperior  	/ordmasculine 	/guillemotright	
+/onequarter   	/onehalf      	/threequarters	/questiondown 	
+/Agrave       	/Aacute       	/Acircumflex  	/Atilde       	
+/Adieresis    	/Aring        	/AE           	/Ccedilla     	
+/Egrave       	/Eacute       	/Ecircumflex  	/Edieresis    	
+/Igrave       	/Iacute       	/Icircumflex  	/Idieresis    	
+/Eth          	/Ntilde       	/Ograve       	/Oacute       	
+/Ocircumflex  	/Otilde       	/Odieresis    	/multiply     	
+/Oslash       	/Ugrave       	/Uacute       	/Ucircumflex  	
+/Udieresis    	/Yacute       	/Thorn        	/germandbls   	
+/agrave       	/aacute       	/acircumflex  	/atilde       	
+/adieresis    	/aring        	/ae           	/ccedilla     	
+/egrave       	/eacute       	/ecircumflex  	/edieresis    	
+/igrave       	/iacute       	/icircumflex  	/idieresis    	
+/eth          	/ntilde       	/ograve       	/oacute       	
+/ocircumflex  	/otilde       	/odieresis    	/divide       	
+/oslash       	/ugrave       	/uacute       	/ucircumflex  	
+/udieresis    	/yacute       	/thorn        	/ydieresis    	
+] def
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier-Bold
+/HFpt_w 10 def
+/HFpt_h 10 def
+/Courier-Bold /HF-gs-font MF
+/HF /HF-gs-font findfont [HFpt_w 0 0 HFpt_h 0 0] makefont def
+/Courier-Bold /F-gs-font MF
+/F-gs-font 11 11 SF
+/#copies 1 def
+% Pagedevice definitions:
+gs_languagelevel 1 gt {
+  <<
+    /PageSize [612 792] 
+  >> setpagedevice
+} if
+%%BeginResource: procset Enscript-Header-enscript-mycolor 1.6 4
+%%IncludeResource: font Times-Bold
+%%IncludeResource: font Times-Roman
+
+% Fonts.
+/Times-Bold /HeaderFont-Bold MF
+/HeaderDateF /HeaderFont-Bold findfont 12 scalefont def
+
+/Times-Roman /HeaderFont-Times MF
+/HeaderHDRF /HeaderFont-Times findfont 14 scalefont def
+
+/HeaderPageNumF /Helvetica-Bold findfont 28.8 scalefont def
+/HeaderPageCountF /Helvetica-Bold findfont 18 scalefont def
+
+/do_header {	% print enscript header
+  gsave
+    d_header_x d_header_y translate
+
+    /dhw d_header_w 4 sub def
+
+    /linecolor {0 0 0 setrgbcolor} bind def  % line color
+    /txcolor   {0 0 0 setrgbcolor} bind def  % text color
+    /fncolor   {0 0 0 setrgbcolor} bind def  % filename line color
+
+    .5 setlinewidth
+
+    % line across bottom of the header area
+    linecolor
+    0 0 moveto dhw 0 lineto
+
+    % side boxes
+    /sbw d_header_h 2 mul def	% side box width
+
+    % left side box
+    0 0 sbw d_header_h Box
+    linecolor
+    stroke
+
+    % date/time in left box
+    txcolor
+    HeaderDateF setfont
+    moddatestr dup stringwidth pop sbw exch sub 2 div
+    d_header_h 2 div 2 add moveto show
+    modtimestr dup stringwidth pop sbw exch sub 2 div
+    d_header_h 5 div moveto show
+
+    % right side box
+    dhw sbw sub 0 sbw d_header_h Box
+    linecolor
+    stroke
+
+    % get width of pagecount
+    HeaderPageCountF setfont
+    pagecountstr stringwidth pop
+
+    txcolor
+    HeaderPageNumF setfont
+    pagenumstr stringwidth pop add  % add to width of pagecount
+    sbw exch sub 2 div dhw sbw sub add
+    d_header_h .2 mul moveto
+
+    pagenumstr show
+
+    HeaderPageCountF setfont
+    pagecountstr show
+
+    % filename
+    fncolor
+    HeaderHDRF setfont
+    dhw fname stringwidth pop sub 2 div d_header_h 8 div moveto
+    fname show
+
+    % user supplied header string.
+    user_header_p {
+      /h d_header_h 8 div 5 mul def
+
+      % HACK around a bug in enscript 1.6.0:
+      % for some reason this is getting set to "(null)" and
+      %
+      user_header_center_str (\(null\)) eq {
+        /user_header_center_str () def
+      } if
+
+      % Implement strict enscript compatibility.
+      user_header_center_str () eq user_header_right_str () eq and {
+        dhw user_header_left_str stringwidth pop sub 2 div
+        h moveto user_header_left_str show
+      } {
+        sbw 5 add h moveto user_header_left_str show
+
+        dhw user_header_center_str stringwidth pop sub 2 div
+        h moveto user_header_center_str show
+
+	dhw sbw sub 5 sub user_header_right_str stringwidth pop
+	sub h moveto user_header_right_str show
+      } ifelse
+    } if
+
+  grestore
+} bind def
+%%EndResource
+/d_page_w 536 def
+/d_page_h 744 def
+/d_header_x 0 def
+/d_header_y 708 def
+/d_header_w 536 def
+/d_header_h 36 def
+/d_footer_x 0 def
+/d_footer_y 0 def
+/d_footer_w 536 def
+/d_footer_h 0 def
+/d_output_w 536 def
+/d_output_h 708 def
+/cols 1 def
+%%EndSetup
+%%Page: (1) 1
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (oclib.oh) def
+/fdir () def
+/ftail (oclib.oh) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: oclib.oh,v 1.24 2011-11-18 17:34:29-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#ifndef __OCLIB_OH__) s
+32.4 658 M (4:) s
+52.2 658 M
+(#define __OCLIB_OH__) s
+32.4 646 M (5:) s
+32.4 634 M (6:) s
+52.2 634 M
+(#ifdef __OCLIB_C__) s
+32.4 622 M (7:) s
+52.2 622 M
+(#   define __\(ID\)         __##ID) s
+32.4 610 M (8:) s
+52.2 610 M
+(#   define NONE__         void) s
+32.4 598 M (9:) s
+52.2 598 M
+(#   define VOID__\(ID\)     void __##ID) s
+25.8 586 M (10:) s
+52.2 586 M
+(#   define BOOL__\(ID\)     ubyte __##ID) s
+25.8 574 M (11:) s
+52.2 574 M
+(#   define CHAR__\(ID\)     ubyte __##ID) s
+25.8 562 M (12:) s
+52.2 562 M
+(#   define INT__\(ID\)      int __##ID) s
+25.8 550 M (13:) s
+52.2 550 M
+(#   define STRING__\(ID\)   ubyte *__##ID) s
+25.8 538 M (14:) s
+52.2 538 M
+(#   define STRINGS__\(ID\)  ubyte **__##ID) s
+25.8 526 M (15:) s
+52.2 526 M
+(#   define null           0) s
+25.8 514 M (16:) s
+52.2 514 M
+(#   define false          0) s
+25.8 502 M (17:) s
+52.2 502 M
+(#   define true           1) s
+25.8 490 M (18:) s
+52.2 490 M
+(typedef unsigned char ubyte;) s
+25.8 478 M (19:) s
+52.2 478 M
+(void *xcalloc \(int nelem, int size\);) s
+25.8 466 M (20:) s
+52.2 466 M
+(#else) s
+25.8 454 M (21:) s
+52.2 454 M
+(#   define EOF            \(-1\)) s
+25.8 442 M (22:) s
+52.2 442 M
+(#   define __\(ID\)         ID) s
+25.8 430 M (23:) s
+52.2 430 M
+(#   define NONE__) s
+25.8 418 M (24:) s
+52.2 418 M
+(#   define VOID__\(ID\)     void ID) s
+25.8 406 M (25:) s
+52.2 406 M
+(#   define BOOL__\(ID\)     bool ID) s
+25.8 394 M (26:) s
+52.2 394 M
+(#   define CHAR__\(ID\)     char ID) s
+25.8 382 M (27:) s
+52.2 382 M
+(#   define INT__\(ID\)      int ID) s
+25.8 370 M (28:) s
+52.2 370 M
+(#   define STRING__\(ID\)   string ID) s
+25.8 358 M (29:) s
+52.2 358 M
+(#   define STRINGS__\(ID\)  string[] ID) s
+25.8 346 M (30:) s
+52.2 346 M
+(VOID__\(__assert_fail\) \(STRING__\(expr\), STRING__\(file\), INT__\(line\)\);) s
+25.8 334 M (31:) s
+52.2 334 M
+(#endif) s
+25.8 322 M (32:) s
+25.8 310 M (33:) s
+52.2 310 M
+(VOID__\(putb\) \(BOOL__\(b\)\);) s
+25.8 298 M (34:) s
+52.2 298 M
+(VOID__\(putc\) \(CHAR__\(c\)\);) s
+25.8 286 M (35:) s
+52.2 286 M
+(VOID__\(puti\) \(INT__\(i\)\);) s
+25.8 274 M (36:) s
+52.2 274 M
+(VOID__\(puts\) \(STRING__\(s\)\);) s
+25.8 262 M (37:) s
+52.2 262 M
+(VOID__\(endl\) \(NONE__\);) s
+25.8 250 M (38:) s
+52.2 250 M
+(INT__\(getc\) \(NONE__\);) s
+25.8 238 M (39:) s
+52.2 238 M
+(STRING__\(getw\) \(NONE__\);) s
+25.8 226 M (40:) s
+52.2 226 M
+(STRING__\(getln\) \(NONE__\);) s
+25.8 214 M (41:) s
+52.2 214 M
+(STRINGS__ \(getargv\) \(NONE__\);) s
+25.8 202 M (42:) s
+52.2 202 M
+(VOID__\(exit\) \(int status\);) s
+25.8 190 M (43:) s
+52.2 190 M
+(#define assert\(expr\) \\) s
+25.8 178 M (44:) s
+52.2 178 M
+(        {if \(! \(expr\)\) __\(__assert_fail\) \(#expr, __FILE__, __LINE__\);}) s
+25.8 166 M (45:) s
+25.8 154 M (46:) s
+52.2 154 M
+(#endif) s
+25.8 142 M (47:) s
+_R
+S
+%%Page: (1) 2
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (oclib.c) def
+/fdir () def
+/ftail (oclib.c) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/2) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: oclib.c,v 1.45 2012-11-16 21:10:41-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include <ctype.h>) s
+32.4 658 M (4:) s
+52.2 658 M
+(#include <libgen.h>) s
+32.4 646 M (5:) s
+52.2 646 M
+(#include <stdio.h>) s
+32.4 634 M (6:) s
+52.2 634 M
+(#include <stdlib.h>) s
+32.4 622 M (7:) s
+52.2 622 M
+(#include <string.h>) s
+32.4 610 M (8:) s
+32.4 598 M (9:) s
+52.2 598 M
+(#define __OCLIB_C__) s
+25.8 586 M (10:) s
+52.2 586 M
+(#include "oclib.oh") s
+25.8 574 M (11:) s
+25.8 562 M (12:) s
+52.2 562 M
+(ubyte **oc_argv;) s
+25.8 550 M (13:) s
+25.8 538 M (14:) s
+52.2 538 M
+(void ____assert_fail \(char *expr, char *file, int line\) {) s
+25.8 526 M (15:) s
+52.2 526 M
+(   fflush \(NULL\);) s
+25.8 514 M (16:) s
+52.2 514 M
+(   fprintf \(stderr, "%s: %s:%d: assert \(%s\) failed.\\n",) s
+25.8 502 M (17:) s
+52.2 502 M
+(            basename \(\(char *\) oc_argv[0]\), file, line, expr\);) s
+25.8 490 M (18:) s
+52.2 490 M
+(   fflush \(NULL\);) s
+25.8 478 M (19:) s
+52.2 478 M
+(   abort\(\);) s
+25.8 466 M (20:) s
+52.2 466 M
+(}) s
+25.8 454 M (21:) s
+25.8 442 M (22:) s
+52.2 442 M
+(void *xcalloc \(int nelem, int size\) {) s
+25.8 430 M (23:) s
+52.2 430 M
+(   void *result = calloc \(nelem, size\);) s
+25.8 418 M (24:) s
+52.2 418 M
+(   assert \(result != NULL\);) s
+25.8 406 M (25:) s
+52.2 406 M
+(   return result;) s
+25.8 394 M (26:) s
+52.2 394 M
+(}) s
+25.8 382 M (27:) s
+25.8 370 M (28:) s
+52.2 370 M
+(void __ocmain \(void\);) s
+25.8 358 M (29:) s
+52.2 358 M
+(int main \(int argc, char **argv\) {) s
+25.8 346 M (30:) s
+52.2 346 M
+(   argc = argc; // warning: unused parameter 'argc') s
+25.8 334 M (31:) s
+52.2 334 M
+(   oc_argv = \(ubyte **\) argv;) s
+25.8 322 M (32:) s
+52.2 322 M
+(   __ocmain\(\);) s
+25.8 310 M (33:) s
+52.2 310 M
+(   return EXIT_SUCCESS;) s
+25.8 298 M (34:) s
+52.2 298 M
+(}) s
+25.8 286 M (35:) s
+_R
+S
+%%Page: (2) 3
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 2 def
+/fname (oclib.c) def
+/fdir () def
+/ftail (oclib.c) def
+% User defined strings:
+/pagenumstr (2) def
+/moddatestr (10/23/14) def
+/pagecountstr (/2) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+25.8 694 M (36:) s
+25.8 682 M (37:) s
+52.2 682 M
+(ubyte *scan \(int \(*skipover\) \(int\), int \(*stopat\) \(int\)\) {) s
+25.8 670 M (38:) s
+52.2 670 M
+(   int byte;) s
+25.8 658 M (39:) s
+52.2 658 M
+(   do {) s
+25.8 646 M (40:) s
+52.2 646 M
+(      byte = getchar\(\);) s
+25.8 634 M (41:) s
+52.2 634 M
+(      if \(byte == EOF\) return NULL;) s
+25.8 622 M (42:) s
+52.2 622 M
+(   } while \(skipover \(byte\)\);) s
+25.8 610 M (43:) s
+52.2 610 M
+(   ubyte buffer[0x1000];) s
+25.8 598 M (44:) s
+52.2 598 M
+(   ubyte *end = buffer;) s
+25.8 586 M (45:) s
+52.2 586 M
+(   do {) s
+25.8 574 M (46:) s
+52.2 574 M
+(      *end++ = byte;) s
+25.8 562 M (47:) s
+52.2 562 M
+(      assert \(end < buffer + sizeof buffer\);) s
+25.8 550 M (48:) s
+52.2 550 M
+(      *end = '\\0';) s
+25.8 538 M (49:) s
+52.2 538 M
+(      byte = getchar\(\);) s
+25.8 526 M (50:) s
+52.2 526 M
+(   }while \(byte != EOF && ! stopat \(byte\)\);) s
+25.8 514 M (51:) s
+52.2 514 M
+(   ubyte *result = \(ubyte *\) strdup \(\(char *\) buffer\);) s
+25.8 502 M (52:) s
+52.2 502 M
+(   assert \(result != NULL\);) s
+25.8 490 M (53:) s
+52.2 490 M
+(   return result;) s
+25.8 478 M (54:) s
+52.2 478 M
+(}) s
+25.8 466 M (55:) s
+25.8 454 M (56:) s
+52.2 454 M
+(int isfalse \(int byte\)   { return 0 & byte; } ) s
+25.8 442 M (57:) s
+52.2 442 M
+(int isnl \(int byte\)      { return byte == '\\n'; }) s
+25.8 430 M (58:) s
+52.2 430 M
+(void __putb \(ubyte byte\) { printf \("%s", byte ? "true" : "false"\); } ) s
+25.8 418 M (59:) s
+52.2 418 M
+(void __putc \(ubyte byte\) { printf \("%c", byte\); } ) s
+25.8 406 M (60:) s
+52.2 406 M
+(void __puti \(int val\)    { printf \("%d", val\); }) s
+25.8 394 M (61:) s
+52.2 394 M
+(void __puts \(ubyte *str\) { printf \("%s", str\); }) s
+25.8 382 M (62:) s
+52.2 382 M
+(void __endl \(void\)       { printf \("%c", '\\n'\); fflush \(NULL\); }) s
+25.8 370 M (63:) s
+52.2 370 M
+(int __getc \(void\)        { return getchar\(\); } ) s
+25.8 358 M (64:) s
+52.2 358 M
+(ubyte *__getw \(void\)     { return scan \(isspace, isspace\); }) s
+25.8 346 M (65:) s
+52.2 346 M
+(ubyte *__getln \(void\)    { return scan \(isfalse, isnl\); } ) s
+25.8 334 M (66:) s
+52.2 334 M
+(ubyte **__getargv \(void\) { return oc_argv; }) s
+25.8 322 M (67:) s
+52.2 322 M
+(void __exit \(int status\) { exit \(status\); }) s
+25.8 310 M (68:) s
+_R
+S
+%%Page: (1) 4
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (00-trivial.oc) def
+/fdir () def
+/ftail (00-trivial.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 00-trivial.oc,v 1.1 2011-09-15 18:50:16-07 - - $) s
+32.4 682 M (2:) s
+52.2 682 M
+(//) s
+32.4 670 M (3:) s
+52.2 670 M
+(// This program does nothing then returns an exit status of 0.) s
+32.4 658 M (4:) s
+52.2 658 M
+(//) s
+_R
+S
+%%Page: (1) 5
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (01-hello.oc) def
+/fdir () def
+/ftail (01-hello.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 01-hello.oc,v 1.1 2011-09-15 18:50:16-07 - - $) s
+32.4 682 M (2:) s
+52.2 682 M
+(// Simple hello world program.) s
+32.4 670 M (3:) s
+32.4 658 M (4:) s
+52.2 658 M
+(#include "oclib.oh") s
+32.4 646 M (5:) s
+32.4 634 M (6:) s
+52.2 634 M
+(puts \("Hello, world!\\n"\);) s
+_R
+S
+%%Page: (1) 6
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (03-test3.oc) def
+/fdir () def
+/ftail (03-test3.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 03-test3.oc,v 1.2 2012-12-03 13:17:30-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+32.4 646 M (5:) s
+52.2 646 M
+(int a = 3;) s
+32.4 634 M (6:) s
+52.2 634 M
+(int b = 8;) s
+32.4 622 M (7:) s
+52.2 622 M
+(int c = a + b;) s
+32.4 610 M (8:) s
+52.2 610 M
+(a = b + c;) s
+32.4 598 M (9:) s
+52.2 598 M
+(puti \(a\);) s
+25.8 586 M (10:) s
+52.2 586 M
+(putc \('\\n'\);) s
+25.8 574 M (11:) s
+_R
+S
+%%Page: (1) 7
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (04-test4.oc) def
+/fdir () def
+/ftail (04-test4.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 04-test4.oc,v 1.1 2011-09-15 18:50:16-07 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+32.4 646 M (5:) s
+52.2 646 M
+(struct foo {) s
+32.4 634 M (6:) s
+52.2 634 M
+(   int a;) s
+32.4 622 M (7:) s
+52.2 622 M
+(}) s
+32.4 610 M (8:) s
+32.4 598 M (9:) s
+52.2 598 M
+(int a = 6;) s
+25.8 586 M (10:) s
+52.2 586 M
+(foo b = new foo \(\);) s
+25.8 574 M (11:) s
+52.2 574 M
+(b.a = 8;) s
+25.8 562 M (12:) s
+52.2 562 M
+(a = a * b.a + 6;;) s
+25.8 550 M (13:) s
+25.8 538 M (14:) s
+52.2 538 M
+(puti \(a\);) s
+25.8 526 M (15:) s
+52.2 526 M
+(putc \(' '\);) s
+25.8 514 M (16:) s
+52.2 514 M
+(puti \(b.a\);) s
+25.8 502 M (17:) s
+52.2 502 M
+(endl \(\);) s
+25.8 490 M (18:) s
+_R
+S
+%%Page: (1) 8
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (06-test6.oc) def
+/fdir () def
+/ftail (06-test6.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 06-test6.oc,v 1.3 2012-12-03 13:19:06-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+32.4 646 M (5:) s
+52.2 646 M
+(struct foo {}) s
+32.4 634 M (6:) s
+52.2 634 M
+(struct bar {}) s
+32.4 622 M (7:) s
+32.4 610 M (8:) s
+52.2 610 M
+(int f0 \(\);) s
+32.4 598 M (9:) s
+52.2 598 M
+(int f1 \(int a\);) s
+25.8 586 M (10:) s
+52.2 586 M
+(int f2 \(int a, int b\);) s
+25.8 574 M (11:) s
+52.2 574 M
+(int f3 \(string a, string b, string c\);) s
+25.8 562 M (12:) s
+52.2 562 M
+(int f4 \(foo a, bar b\);) s
+25.8 550 M (13:) s
+52.2 550 M
+(string s = "a";) s
+25.8 538 M (14:) s
+52.2 538 M
+(string[] sa = new string[10];) s
+25.8 526 M (15:) s
+_R
+S
+%%Page: (1) 9
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (07-assert.oc) def
+/fdir () def
+/ftail (07-assert.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 07-assert.oc,v 1.2 2012-11-27 13:38:26-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+52.2 658 M
+(assert \("null" == null\);) s
+_R
+S
+%%Page: (1) 10
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (10-hundred.oc) def
+/fdir () def
+/ftail (10-hundred.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 10-hundred.oc,v 1.1 2011-09-15 18:50:16-07 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+32.4 646 M (5:) s
+52.2 646 M
+(int count = 0;) s
+32.4 634 M (6:) s
+52.2 634 M
+(while \(count <= 100\) {) s
+32.4 622 M (7:) s
+52.2 622 M
+(   count = count + 1;) s
+32.4 610 M (8:) s
+52.2 610 M
+(   puti \(count\);) s
+32.4 598 M (9:) s
+52.2 598 M
+(   endl \(\);) s
+25.8 586 M (10:) s
+52.2 586 M
+(}) s
+_R
+S
+%%Page: (1) 11
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (11-numbers.oc) def
+/fdir () def
+/ftail (11-numbers.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 11-numbers.oc,v 1.1 2011-09-15 18:50:16-07 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+32.4 646 M (5:) s
+52.2 646 M
+(int number = 1;) s
+32.4 634 M (6:) s
+52.2 634 M
+(while \(number > 0\) {) s
+32.4 622 M (7:) s
+52.2 622 M
+(   puti \(number\);) s
+32.4 610 M (8:) s
+52.2 610 M
+(   putc \('\\n'\);) s
+32.4 598 M (9:) s
+52.2 598 M
+(   number = number + number;) s
+25.8 586 M (10:) s
+52.2 586 M
+(}) s
+25.8 574 M (11:) s
+52.2 574 M
+(puti \(number\);) s
+25.8 562 M (12:) s
+52.2 562 M
+(putc \('\\n'\);) s
+25.8 550 M (13:) s
+_R
+S
+%%Page: (1) 12
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (12-elseif.oc) def
+/fdir () def
+/ftail (12-elseif.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 12-elseif.oc,v 1.2 2012-12-03 13:21:16-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+32.4 646 M (5:) s
+52.2 646 M
+(int a = 3;) s
+32.4 634 M (6:) s
+32.4 622 M (7:) s
+52.2 622 M
+(if \(a == 1\) puts \("one"\);) s
+32.4 610 M (8:) s
+52.2 610 M
+(else if \(a == 2\) puts \("two"\);) s
+32.4 598 M (9:) s
+52.2 598 M
+(else if \(a == 3\) puts \("three"\);) s
+25.8 586 M (10:) s
+52.2 586 M
+(else puts \("many"\);) s
+25.8 574 M (11:) s
+52.2 574 M
+(endl \(\);) s
+_R
+S
+%%Page: (1) 13
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (13-assertfail.oc) def
+/fdir () def
+/ftail (13-assertfail.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 13-assertfail.oc,v 1.3 2011-11-08 14:53:37-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#undef __OCLIB_OH__) s
+32.4 658 M (4:) s
+52.2 658 M
+(#include "oclib.oh") s
+32.4 646 M (5:) s
+32.4 634 M (6:) s
+52.2 634 M
+(puts \(getargv\(\)[0]\);) s
+32.4 622 M (7:) s
+52.2 622 M
+(puts \(" was compiled "\);) s
+32.4 610 M (8:) s
+52.2 610 M
+(puts \(__DATE__\);) s
+32.4 598 M (9:) s
+52.2 598 M
+(puts \(" @ "\);) s
+25.8 586 M (10:) s
+52.2 586 M
+(puts \(__TIME__\);) s
+25.8 574 M (11:) s
+52.2 574 M
+(endl \(\);) s
+25.8 562 M (12:) s
+52.2 562 M
+(assert \("assert" == "fail"\);) s
+25.8 550 M (13:) s
+_R
+S
+%%Page: (1) 14
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (14-ocecho.oc) def
+/fdir () def
+/ftail (14-ocecho.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 14-ocecho.oc,v 1.2 2011-11-16 23:08:30-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+32.4 646 M (5:) s
+52.2 646 M
+(string[] argv = getargv \(\);) s
+32.4 634 M (6:) s
+52.2 634 M
+(int argi = 1;) s
+32.4 622 M (7:) s
+52.2 622 M
+(while \(argv[argi] != null\) {) s
+32.4 610 M (8:) s
+52.2 610 M
+(   if \(argi > 1\) putc \(' '\);) s
+32.4 598 M (9:) s
+52.2 598 M
+(   puts \(argv[argi]\);) s
+25.8 586 M (10:) s
+52.2 586 M
+(   argi = argi + 1;) s
+25.8 574 M (11:) s
+52.2 574 M
+(}) s
+25.8 562 M (12:) s
+52.2 562 M
+(endl \(\);) s
+25.8 550 M (13:) s
+_R
+S
+%%Page: (1) 15
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (20-fib-array.oc) def
+/fdir () def
+/ftail (20-fib-array.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 20-fib-array.oc,v 1.3 2012-12-03 13:22:58-08 - - $) s
+32.4 682 M (2:) s
+52.2 682 M
+(//) s
+32.4 670 M (3:) s
+52.2 670 M
+(// Put Fibonacci numbers in an array, then print them.) s
+32.4 658 M (4:) s
+52.2 658 M
+(//) s
+32.4 646 M (5:) s
+32.4 634 M (6:) s
+52.2 634 M
+(#include "oclib.oh") s
+32.4 622 M (7:) s
+32.4 610 M (8:) s
+52.2 610 M
+(#define FIB_SIZE 30) s
+32.4 598 M (9:) s
+52.2 598 M
+(int[] fibonacci = new int[FIB_SIZE];) s
+25.8 586 M (10:) s
+25.8 574 M (11:) s
+52.2 574 M
+(fibonacci[0] = 0;) s
+25.8 562 M (12:) s
+52.2 562 M
+(fibonacci[1] = 1;) s
+25.8 550 M (13:) s
+25.8 538 M (14:) s
+52.2 538 M
+(int index = 2;) s
+25.8 526 M (15:) s
+52.2 526 M
+(while \(index < FIB_SIZE\) {) s
+25.8 514 M (16:) s
+52.2 514 M
+(   fibonacci[index] = fibonacci[index - 1] + fibonacci[index - 2];) s
+25.8 502 M (17:) s
+52.2 502 M
+(   index = index + 1;) s
+25.8 490 M (18:) s
+52.2 490 M
+(}) s
+25.8 478 M (19:) s
+25.8 466 M (20:) s
+52.2 466 M
+(index = 0;) s
+25.8 454 M (21:) s
+52.2 454 M
+(puts \("Numeri di figlio Bonacci\\n"\);) s
+25.8 442 M (22:) s
+52.2 442 M
+(while \(index < FIB_SIZE\) {) s
+25.8 430 M (23:) s
+52.2 430 M
+(   puts \("fibonacci["\);) s
+25.8 418 M (24:) s
+52.2 418 M
+(   puti \(index\);) s
+25.8 406 M (25:) s
+52.2 406 M
+(   puts \(" = "\);) s
+25.8 394 M (26:) s
+52.2 394 M
+(   puti \(fibonacci[index]\);) s
+25.8 382 M (27:) s
+52.2 382 M
+(   endl \(\);) s
+25.8 370 M (28:) s
+52.2 370 M
+(   index = index + 1;) s
+25.8 358 M (29:) s
+52.2 358 M
+(}) s
+_R
+S
+%%Page: (1) 16
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (21-eratosthenes.oc) def
+/fdir () def
+/ftail (21-eratosthenes.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 21-eratosthenes.oc,v 1.2 2011-09-19 14:25:40-07 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+52.2 658 M
+(#define SIZE 100) s
+32.4 646 M (5:) s
+52.2 646 M
+(#define LOWPRIME 2) s
+32.4 634 M (6:) s
+32.4 622 M (7:) s
+52.2 622 M
+(bool[] sieve = new bool[SIZE];) s
+32.4 610 M (8:) s
+52.2 610 M
+(int index = LOWPRIME;) s
+32.4 598 M (9:) s
+25.8 586 M (10:) s
+52.2 586 M
+(while \(index < SIZE\) {) s
+25.8 574 M (11:) s
+52.2 574 M
+(   sieve[index] = true;) s
+25.8 562 M (12:) s
+52.2 562 M
+(   index = index + 1;) s
+25.8 550 M (13:) s
+52.2 550 M
+(}) s
+25.8 538 M (14:) s
+25.8 526 M (15:) s
+52.2 526 M
+(int prime = LOWPRIME;) s
+25.8 514 M (16:) s
+52.2 514 M
+(while \(prime < SIZE\) {) s
+25.8 502 M (17:) s
+52.2 502 M
+(   if \(sieve[prime]\) {) s
+25.8 490 M (18:) s
+52.2 490 M
+(      index = prime * 2;) s
+25.8 478 M (19:) s
+52.2 478 M
+(      while \(index < SIZE\) {) s
+25.8 466 M (20:) s
+52.2 466 M
+(         sieve[index] = false;) s
+25.8 454 M (21:) s
+52.2 454 M
+(         index = index + prime;) s
+25.8 442 M (22:) s
+52.2 442 M
+(      }) s
+25.8 430 M (23:) s
+52.2 430 M
+(   }) s
+25.8 418 M (24:) s
+52.2 418 M
+(   prime = prime + 1;) s
+25.8 406 M (25:) s
+52.2 406 M
+(}) s
+25.8 394 M (26:) s
+25.8 382 M (27:) s
+52.2 382 M
+(index = LOWPRIME;) s
+25.8 370 M (28:) s
+52.2 370 M
+(while \(index < SIZE\) {) s
+25.8 358 M (29:) s
+52.2 358 M
+(   if \(sieve[index]\) {) s
+25.8 346 M (30:) s
+52.2 346 M
+(      puti \(index\);) s
+25.8 334 M (31:) s
+52.2 334 M
+(      endl \(\);) s
+25.8 322 M (32:) s
+52.2 322 M
+(   }) s
+25.8 310 M (33:) s
+52.2 310 M
+(}) s
+25.8 298 M (34:) s
+_R
+S
+%%Page: (1) 17
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (23-atoi.oc) def
+/fdir () def
+/ftail (23-atoi.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 23-atoi.oc,v 1.7 2012-12-03 13:21:36-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+32.4 646 M (5:) s
+52.2 646 M
+(int atoi \(string str\) {) s
+32.4 634 M (6:) s
+52.2 634 M
+(   assert \(str != null\);) s
+32.4 622 M (7:) s
+52.2 622 M
+(   bool neg = false;) s
+32.4 610 M (8:) s
+52.2 610 M
+(   int num = 0;) s
+32.4 598 M (9:) s
+52.2 598 M
+(   int digit = 0;) s
+25.8 586 M (10:) s
+52.2 586 M
+(   if \(str[0] != '\\0'\) {) s
+25.8 574 M (11:) s
+52.2 574 M
+(      if \(str[0] == '-'\) {) s
+25.8 562 M (12:) s
+52.2 562 M
+(         digit = digit + 1;) s
+25.8 550 M (13:) s
+52.2 550 M
+(         neg = true;) s
+25.8 538 M (14:) s
+52.2 538 M
+(      }) s
+25.8 526 M (15:) s
+52.2 526 M
+(      bool contin = true;) s
+25.8 514 M (16:) s
+52.2 514 M
+(      while \(contin\) {) s
+25.8 502 M (17:) s
+52.2 502 M
+(         if \(str[digit] == '\\0'\) {) s
+25.8 490 M (18:) s
+52.2 490 M
+(            contin = false;) s
+25.8 478 M (19:) s
+52.2 478 M
+(         }else {) s
+25.8 466 M (20:) s
+52.2 466 M
+(            char c = str[digit];) s
+25.8 454 M (21:) s
+52.2 454 M
+(            digit = digit + 1;) s
+25.8 442 M (22:) s
+52.2 442 M
+(            if \(c < '0'\) contin = false;) s
+25.8 430 M (23:) s
+52.2 430 M
+(            else if \(c > '9'\) contin = false;) s
+25.8 418 M (24:) s
+52.2 418 M
+(            else num = num * 10 + ord c - ord '0';) s
+25.8 406 M (25:) s
+52.2 406 M
+(         }) s
+25.8 394 M (26:) s
+52.2 394 M
+(      }) s
+25.8 382 M (27:) s
+52.2 382 M
+(      if \(neg\) num = - num;) s
+25.8 370 M (28:) s
+52.2 370 M
+(   }) s
+25.8 358 M (29:) s
+52.2 358 M
+(   return num;) s
+25.8 346 M (30:) s
+52.2 346 M
+(}) s
+25.8 334 M (31:) s
+25.8 322 M (32:) s
+52.2 322 M
+(int argi = 0;) s
+25.8 310 M (33:) s
+52.2 310 M
+(string[] argv = getargv \(\);) s
+25.8 298 M (34:) s
+52.2 298 M
+(while \(argv[argi] != null\) {) s
+25.8 286 M (35:) s
+52.2 286 M
+(   string arg = argv[argi];) s
+25.8 274 M (36:) s
+52.2 274 M
+(   puts \(arg\);) s
+25.8 262 M (37:) s
+52.2 262 M
+(   puts \(" = "\);) s
+25.8 250 M (38:) s
+52.2 250 M
+(   puti \(atoi \(arg\)\);) s
+25.8 238 M (39:) s
+52.2 238 M
+(   endl \(\);) s
+25.8 226 M (40:) s
+52.2 226 M
+(}) s
+25.8 214 M (41:) s
+_R
+S
+%%Page: (1) 18
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (30-fac-fnloop.oc) def
+/fdir () def
+/ftail (30-fac-fnloop.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 30-fac-fnloop.oc,v 1.4 2011-11-16 20:18:50-08 - - $) s
+32.4 682 M (2:) s
+52.2 682 M
+(//) s
+32.4 670 M (3:) s
+52.2 670 M
+(// Function uses a loop to compute factorial.) s
+32.4 658 M (4:) s
+52.2 658 M
+(//) s
+32.4 646 M (5:) s
+32.4 634 M (6:) s
+52.2 634 M
+(#include "oclib.oh") s
+32.4 622 M (7:) s
+32.4 610 M (8:) s
+52.2 610 M
+(int fac \(int n\) {) s
+32.4 598 M (9:) s
+52.2 598 M
+(   int f = 1;) s
+25.8 586 M (10:) s
+52.2 586 M
+(   while \(n > 1\) {) s
+25.8 574 M (11:) s
+52.2 574 M
+(      f = f * n;) s
+25.8 562 M (12:) s
+52.2 562 M
+(      n = n - 1;) s
+25.8 550 M (13:) s
+52.2 550 M
+(   }) s
+25.8 538 M (14:) s
+52.2 538 M
+(   return f;) s
+25.8 526 M (15:) s
+52.2 526 M
+(}) s
+25.8 514 M (16:) s
+25.8 502 M (17:) s
+52.2 502 M
+(int n = 1;) s
+25.8 490 M (18:) s
+52.2 490 M
+(while \(n <= 5\) {) s
+25.8 478 M (19:) s
+52.2 478 M
+(   puti \(fac \(n\)\);) s
+25.8 466 M (20:) s
+52.2 466 M
+(   endl \(\);) s
+25.8 454 M (21:) s
+52.2 454 M
+(   n = n + 1;) s
+25.8 442 M (22:) s
+52.2 442 M
+(}) s
+25.8 430 M (23:) s
+_R
+S
+%%Page: (1) 19
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (31-fib-2supn.oc) def
+/fdir () def
+/ftail (31-fib-2supn.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 31-fib-2supn.oc,v 1.1 2011-10-20 21:31:44-07 - - $) s
+32.4 682 M (2:) s
+52.2 682 M
+(//) s
+32.4 670 M (3:) s
+52.2 670 M
+(// Very slow program, computes Fibonacci numbers with O\(2^n\) speed.) s
+32.4 658 M (4:) s
+52.2 658 M
+(//) s
+32.4 646 M (5:) s
+32.4 634 M (6:) s
+52.2 634 M
+(#include "oclib.oh") s
+32.4 622 M (7:) s
+32.4 610 M (8:) s
+52.2 610 M
+(int fibonacci \(int n\) {) s
+32.4 598 M (9:) s
+52.2 598 M
+(   if \(n < 2\) return n;) s
+25.8 586 M (10:) s
+52.2 586 M
+(   return fibonacci \(n - 1\) + fibonacci \(n - 2\);) s
+25.8 574 M (11:) s
+52.2 574 M
+(}) s
+25.8 562 M (12:) s
+25.8 550 M (13:) s
+52.2 550 M
+(// Main program.) s
+25.8 538 M (14:) s
+25.8 526 M (15:) s
+52.2 526 M
+(int n = 0;) s
+25.8 514 M (16:) s
+52.2 514 M
+(while \(n < 10\) {) s
+25.8 502 M (17:) s
+52.2 502 M
+(   puts \("fibonacci\("\);) s
+25.8 490 M (18:) s
+52.2 490 M
+(   puti \(n\);) s
+25.8 478 M (19:) s
+52.2 478 M
+(   puts \(" = "\);) s
+25.8 466 M (20:) s
+52.2 466 M
+(   puti \(fibonacci \(n\)\);) s
+25.8 454 M (21:) s
+52.2 454 M
+(   endl \(\);) s
+25.8 442 M (22:) s
+52.2 442 M
+(}) s
+25.8 430 M (23:) s
+_R
+S
+%%Page: (1) 20
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (40-arraystack.oc) def
+/fdir () def
+/ftail (40-arraystack.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 40-arraystack.oc,v 1.6 2012-12-03 13:23:28-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+32.4 646 M (5:) s
+52.2 646 M
+(#define EMPTY \(-1\)) s
+32.4 634 M (6:) s
+32.4 622 M (7:) s
+52.2 622 M
+(struct stack {) s
+32.4 610 M (8:) s
+52.2 610 M
+(   string[] data;) s
+32.4 598 M (9:) s
+52.2 598 M
+(   int size;) s
+25.8 586 M (10:) s
+52.2 586 M
+(   int top;) s
+25.8 574 M (11:) s
+52.2 574 M
+(}) s
+25.8 562 M (12:) s
+25.8 550 M (13:) s
+52.2 550 M
+(stack new_stack \(int size\) {) s
+25.8 538 M (14:) s
+52.2 538 M
+(   stack stack = new stack \(\); // Zeros out both fields.) s
+25.8 526 M (15:) s
+52.2 526 M
+(   stack.data = new string[size]; // Array of null pointers.) s
+25.8 514 M (16:) s
+52.2 514 M
+(   stack.size = size;) s
+25.8 502 M (17:) s
+52.2 502 M
+(   stack.top = EMPTY;) s
+25.8 490 M (18:) s
+52.2 490 M
+(   return stack;) s
+25.8 478 M (19:) s
+52.2 478 M
+(}) s
+25.8 466 M (20:) s
+25.8 454 M (21:) s
+52.2 454 M
+(void push \(stack stack, string str\) {) s
+25.8 442 M (22:) s
+52.2 442 M
+(   assert \(stack.top < stack.size - 1\);) s
+25.8 430 M (23:) s
+52.2 430 M
+(   stack.top = stack.top + 1;) s
+25.8 418 M (24:) s
+52.2 418 M
+(   stack.data[stack.top] = str;) s
+25.8 406 M (25:) s
+52.2 406 M
+(}) s
+25.8 394 M (26:) s
+25.8 382 M (27:) s
+52.2 382 M
+(string pop \(stack stack\) {) s
+25.8 370 M (28:) s
+52.2 370 M
+(   assert \(stack.top != EMPTY\);) s
+25.8 358 M (29:) s
+52.2 358 M
+(   string tmp = stack.data[stack.top];) s
+25.8 346 M (30:) s
+52.2 346 M
+(   stack.top = stack.top - 1;) s
+25.8 334 M (31:) s
+52.2 334 M
+(   return tmp;) s
+25.8 322 M (32:) s
+52.2 322 M
+(}) s
+25.8 310 M (33:) s
+25.8 298 M (34:) s
+52.2 298 M
+(bool empty \(stack stack\) {) s
+25.8 286 M (35:) s
+52.2 286 M
+(   return stack.top == EMPTY;) s
+25.8 274 M (36:) s
+52.2 274 M
+(}) s
+25.8 262 M (37:) s
+25.8 250 M (38:) s
+52.2 250 M
+(// Main program.) s
+25.8 238 M (39:) s
+52.2 238 M
+(string[] argv = getargv \(\);) s
+25.8 226 M (40:) s
+52.2 226 M
+(stack stack = new_stack \(100\);) s
+25.8 214 M (41:) s
+25.8 202 M (42:) s
+52.2 202 M
+(int argi = 0;) s
+25.8 190 M (43:) s
+52.2 190 M
+(while \(argv[argi] != null\) {) s
+25.8 178 M (44:) s
+52.2 178 M
+(   push \(stack, argv[argi]\);) s
+25.8 166 M (45:) s
+52.2 166 M
+(   argi = argi + 1;) s
+25.8 154 M (46:) s
+52.2 154 M
+(}) s
+25.8 142 M (47:) s
+25.8 130 M (48:) s
+52.2 130 M
+(while \(! empty \(stack\)\) {) s
+25.8 118 M (49:) s
+52.2 118 M
+(   puts \(pop \(stack\)\);) s
+25.8 106 M (50:) s
+52.2 106 M
+(   endl \(\);) s
+25.8 94 M (51:) s
+52.2 94 M
+(}) s
+25.8 82 M (52:) s
+_R
+S
+%%Page: (1) 21
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (41-linkedstack.oc) def
+/fdir () def
+/ftail (41-linkedstack.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 41-linkedstack.oc,v 1.7 2012-12-03 13:24:26-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+32.4 646 M (5:) s
+52.2 646 M
+(struct node {) s
+32.4 634 M (6:) s
+52.2 634 M
+(   string data;) s
+32.4 622 M (7:) s
+52.2 622 M
+(   node link;) s
+32.4 610 M (8:) s
+52.2 610 M
+(}) s
+32.4 598 M (9:) s
+25.8 586 M (10:) s
+52.2 586 M
+(struct stack {) s
+25.8 574 M (11:) s
+52.2 574 M
+(   node top;) s
+25.8 562 M (12:) s
+52.2 562 M
+(}) s
+25.8 550 M (13:) s
+25.8 538 M (14:) s
+52.2 538 M
+(bool empty \(stack stack\) {) s
+25.8 526 M (15:) s
+52.2 526 M
+(   assert \(stack != null\);) s
+25.8 514 M (16:) s
+52.2 514 M
+(   return stack.top == null;) s
+25.8 502 M (17:) s
+52.2 502 M
+(}) s
+25.8 490 M (18:) s
+25.8 478 M (19:) s
+52.2 478 M
+(stack new_stack \(\) {) s
+25.8 466 M (20:) s
+52.2 466 M
+(   stack stack = new stack \(\);) s
+25.8 454 M (21:) s
+52.2 454 M
+(   stack.top = null;) s
+25.8 442 M (22:) s
+52.2 442 M
+(   return stack;) s
+25.8 430 M (23:) s
+52.2 430 M
+(}) s
+25.8 418 M (24:) s
+25.8 406 M (25:) s
+52.2 406 M
+(void push \(stack stack, string str\) {) s
+25.8 394 M (26:) s
+52.2 394 M
+(   assert \(stack != null\);) s
+25.8 382 M (27:) s
+52.2 382 M
+(   node tmp = new node \(\);) s
+25.8 370 M (28:) s
+52.2 370 M
+(   tmp.data = str;) s
+25.8 358 M (29:) s
+52.2 358 M
+(   tmp.link = stack.top;) s
+25.8 346 M (30:) s
+52.2 346 M
+(   stack.top = tmp;) s
+25.8 334 M (31:) s
+52.2 334 M
+(}) s
+25.8 322 M (32:) s
+25.8 310 M (33:) s
+52.2 310 M
+(string pop \(stack stack\) {) s
+25.8 298 M (34:) s
+52.2 298 M
+(   assert \(stack != null\);) s
+25.8 286 M (35:) s
+52.2 286 M
+(   assert \(! empty \(stack\)\);) s
+25.8 274 M (36:) s
+52.2 274 M
+(   string tmp = stack.top.data;) s
+25.8 262 M (37:) s
+52.2 262 M
+(   stack.top = stack.top.link;) s
+25.8 250 M (38:) s
+52.2 250 M
+(   return tmp;) s
+25.8 238 M (39:) s
+52.2 238 M
+(}) s
+25.8 226 M (40:) s
+25.8 214 M (41:) s
+52.2 214 M
+(// Main program.) s
+25.8 202 M (42:) s
+25.8 190 M (43:) s
+52.2 190 M
+(string[] argv = getargv \(\);) s
+25.8 178 M (44:) s
+52.2 178 M
+(stack stack = new_stack \(\);) s
+25.8 166 M (45:) s
+52.2 166 M
+(int argi = 0;) s
+25.8 154 M (46:) s
+25.8 142 M (47:) s
+52.2 142 M
+(while \(argv[argi] != null\) {) s
+25.8 130 M (48:) s
+52.2 130 M
+(   push \(stack, argv[argi]\);) s
+25.8 118 M (49:) s
+52.2 118 M
+(   argi = argi + 1;) s
+25.8 106 M (50:) s
+52.2 106 M
+(}) s
+25.8 94 M (51:) s
+25.8 82 M (52:) s
+52.2 82 M
+(while \(! empty \(stack\)\) {) s
+25.8 70 M (53:) s
+52.2 70 M
+(   puts \(pop \(stack\)\);) s
+25.8 58 M (54:) s
+52.2 58 M
+(   endl \(\);) s
+25.8 46 M (55:) s
+52.2 46 M
+(}) s
+25.8 34 M (56:) s
+_R
+S
+%%Page: (1) 22
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (42-viiiqueens.oc) def
+/fdir () def
+/ftail (42-viiiqueens.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 42-viiiqueens.oc,v 1.4 2012-12-03 13:24:51-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+32.4 646 M (5:) s
+52.2 646 M
+(#define BOARD_SIZE 8) s
+32.4 634 M (6:) s
+52.2 634 M
+(int[] board = new int[BOARD_SIZE];) s
+32.4 622 M (7:) s
+32.4 610 M (8:) s
+52.2 610 M
+(bool is_safe \(int newcol\) {) s
+32.4 598 M (9:) s
+52.2 598 M
+(   int col = 0;) s
+25.8 586 M (10:) s
+52.2 586 M
+(   while \(col < newcol\) {) s
+25.8 574 M (11:) s
+52.2 574 M
+(      if \(board[col] == board[newcol]\) return false;) s
+25.8 562 M (12:) s
+52.2 562 M
+(      int diagonal = board[col] - board[newcol];) s
+25.8 550 M (13:) s
+52.2 550 M
+(      if \(diagonal == col - newcol\) return false;) s
+25.8 538 M (14:) s
+52.2 538 M
+(      if \(diagonal == newcol - col\) return false;) s
+25.8 526 M (15:) s
+52.2 526 M
+(      col = col + 1;) s
+25.8 514 M (16:) s
+52.2 514 M
+(   }) s
+25.8 502 M (17:) s
+52.2 502 M
+(   return true;) s
+25.8 490 M (18:) s
+52.2 490 M
+(}) s
+25.8 478 M (19:) s
+25.8 466 M (20:) s
+52.2 466 M
+(void printqueens \(\) {) s
+25.8 454 M (21:) s
+52.2 454 M
+(   int col = 0;) s
+25.8 442 M (22:) s
+52.2 442 M
+(   while \(col < BOARD_SIZE\) {) s
+25.8 430 M (23:) s
+52.2 430 M
+(      putc \(chr \(board[col] + ord '1'\)\);) s
+25.8 418 M (24:) s
+52.2 418 M
+(      col = col + 1;) s
+25.8 406 M (25:) s
+52.2 406 M
+(   }) s
+25.8 394 M (26:) s
+52.2 394 M
+(   putc \('\\n'\);) s
+25.8 382 M (27:) s
+52.2 382 M
+(}) s
+25.8 370 M (28:) s
+25.8 358 M (29:) s
+52.2 358 M
+(void queens \(int newcol\) {) s
+25.8 346 M (30:) s
+52.2 346 M
+(   if \(newcol == BOARD_SIZE\) printqueens \(\);) s
+25.8 334 M (31:) s
+52.2 334 M
+(   else {) s
+25.8 322 M (32:) s
+52.2 322 M
+(      int row = 0;) s
+25.8 310 M (33:) s
+52.2 310 M
+(      while \(row < BOARD_SIZE\) {) s
+25.8 298 M (34:) s
+52.2 298 M
+(         board[newcol] = row;) s
+25.8 286 M (35:) s
+52.2 286 M
+(         if \(is_safe \(newcol\)\) queens \(newcol + 1\);) s
+25.8 274 M (36:) s
+52.2 274 M
+(         row = row + 1;) s
+25.8 262 M (37:) s
+52.2 262 M
+(      }) s
+25.8 250 M (38:) s
+52.2 250 M
+(   }) s
+25.8 238 M (39:) s
+52.2 238 M
+(}) s
+25.8 226 M (40:) s
+25.8 214 M (41:) s
+52.2 214 M
+(// Main program.) s
+25.8 202 M (42:) s
+52.2 202 M
+(queens \(0\);) s
+25.8 190 M (43:) s
+_R
+S
+%%Page: (1) 23
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (44-dot-product.oc) def
+/fdir () def
+/ftail (44-dot-product.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 44-dot-product.oc,v 1.3 2012-12-03 13:25:15-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+32.4 646 M (5:) s
+52.2 646 M
+(int dot_product \(int size, int[] vec1, int[] vec2\) {) s
+32.4 634 M (6:) s
+52.2 634 M
+(   int index = 0;) s
+32.4 622 M (7:) s
+52.2 622 M
+(   int dot = 0;) s
+32.4 610 M (8:) s
+52.2 610 M
+(   while \(index < size\) {) s
+32.4 598 M (9:) s
+52.2 598 M
+(      dot = dot + vec1[index] * vec2[index];) s
+25.8 586 M (10:) s
+52.2 586 M
+(      index = index + 1;) s
+25.8 574 M (11:) s
+52.2 574 M
+(   }) s
+25.8 562 M (12:) s
+52.2 562 M
+(   return dot;) s
+25.8 550 M (13:) s
+52.2 550 M
+(}) s
+25.8 538 M (14:) s
+25.8 526 M (15:) s
+52.2 526 M
+(#define SIZE 10) s
+25.8 514 M (16:) s
+52.2 514 M
+(int[] vec1 = new int[SIZE];) s
+25.8 502 M (17:) s
+52.2 502 M
+(int[] vec2 = new int[SIZE];) s
+25.8 490 M (18:) s
+52.2 490 M
+(int i = 0;) s
+25.8 478 M (19:) s
+52.2 478 M
+(while \(i < SIZE\) {) s
+25.8 466 M (20:) s
+52.2 466 M
+(   vec1[i] = i + 10;) s
+25.8 454 M (21:) s
+52.2 454 M
+(   vec2[i] = i * 10;) s
+25.8 442 M (22:) s
+52.2 442 M
+(}) s
+25.8 430 M (23:) s
+52.2 430 M
+(puti \(dot_product \(SIZE, vec1, vec2\)\);) s
+25.8 418 M (24:) s
+52.2 418 M
+(endl \(\);) s
+_R
+S
+%%Page: (1) 24
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (45-towers-of-hanoi.oc) def
+/fdir () def
+/ftail (45-towers-of-hanoi.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 45-towers-of-hanoi.oc,v 1.3 2012-12-03 13:26:14-08 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(#include "oclib.oh") s
+32.4 658 M (4:) s
+32.4 646 M (5:) s
+52.2 646 M
+(void move \(string src, string dst\) {) s
+32.4 634 M (6:) s
+52.2 634 M
+(   puts \("Move a disk from "\);) s
+32.4 622 M (7:) s
+52.2 622 M
+(   puts \(src\);) s
+32.4 610 M (8:) s
+52.2 610 M
+(   puts \(" to "\);) s
+32.4 598 M (9:) s
+52.2 598 M
+(   puts \(dst\);) s
+25.8 586 M (10:) s
+52.2 586 M
+(   puts \(".\\n"\);) s
+25.8 574 M (11:) s
+52.2 574 M
+(}) s
+25.8 562 M (12:) s
+25.8 550 M (13:) s
+52.2 550 M
+(void towers \(int ndisks, string src, string tmp, string dst\) {) s
+25.8 538 M (14:) s
+52.2 538 M
+(   if \(ndisks < 1\) return;) s
+25.8 526 M (15:) s
+52.2 526 M
+(   towers \(ndisks - 1, src, dst, tmp\);) s
+25.8 514 M (16:) s
+52.2 514 M
+(   move \(src, dst\);) s
+25.8 502 M (17:) s
+52.2 502 M
+(   towers \(ndisks - 1, tmp, src, dst\);) s
+25.8 490 M (18:) s
+52.2 490 M
+(}) s
+25.8 478 M (19:) s
+25.8 466 M (20:) s
+52.2 466 M
+(towers \(4, "Source", "Temporary", "Destination"\);) s
+25.8 454 M (21:) s
+_R
+S
+%%Page: (1) 25
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (53-insertionsort.oc) def
+/fdir () def
+/ftail (53-insertionsort.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/2) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 53-insertionsort.oc,v 1.4 2012-12-03 13:26:42-08 - - $) s
+32.4 682 M (2:) s
+52.2 682 M
+(//) s
+32.4 670 M (3:) s
+52.2 670 M
+(// Use insertion sort to print argv in osrted order.) s
+32.4 658 M (4:) s
+52.2 658 M
+(//) s
+32.4 646 M (5:) s
+32.4 634 M (6:) s
+52.2 634 M
+(#include "oclib.oh") s
+32.4 622 M (7:) s
+32.4 610 M (8:) s
+52.2 610 M
+(int strcmp \(string s1, string s2\) {) s
+32.4 598 M (9:) s
+52.2 598 M
+(   int index = 0;) s
+25.8 586 M (10:) s
+52.2 586 M
+(   bool contin = true;) s
+25.8 574 M (11:) s
+52.2 574 M
+(   while \(contin\) {) s
+25.8 562 M (12:) s
+52.2 562 M
+(      char s1c = s1[index];) s
+25.8 550 M (13:) s
+52.2 550 M
+(      char s2c = s2[index];) s
+25.8 538 M (14:) s
+52.2 538 M
+(      int cmp = ord s1c - ord s2c;) s
+25.8 526 M (15:) s
+52.2 526 M
+(      if \(cmp != 0\) return cmp;) s
+25.8 514 M (16:) s
+52.2 514 M
+(      if \(s1c == '\\0'\) contin = false;) s
+25.8 502 M (17:) s
+52.2 502 M
+(      index = index + 1;) s
+25.8 490 M (18:) s
+52.2 490 M
+(   }) s
+25.8 478 M (19:) s
+52.2 478 M
+(   return 0;) s
+25.8 466 M (20:) s
+52.2 466 M
+(}) s
+25.8 454 M (21:) s
+25.8 442 M (22:) s
+52.2 442 M
+(void insertion_sort \(int size, string[] array\) {) s
+25.8 430 M (23:) s
+52.2 430 M
+(   int sorted = 1;) s
+25.8 418 M (24:) s
+52.2 418 M
+(   while \(sorted < size\) {) s
+25.8 406 M (25:) s
+52.2 406 M
+(      int slot = sorted;) s
+25.8 394 M (26:) s
+52.2 394 M
+(      string element = array[slot];) s
+25.8 382 M (27:) s
+52.2 382 M
+(      bool contin = true;) s
+25.8 370 M (28:) s
+52.2 370 M
+(      while \(contin\) {) s
+25.8 358 M (29:) s
+52.2 358 M
+(         if \(slot == 0\) {) s
+25.8 346 M (30:) s
+52.2 346 M
+(            contin = false;) s
+25.8 334 M (31:) s
+52.2 334 M
+(         }else if \(strcmp \(array[slot - 1], element\) <= 0\) {) s
+25.8 322 M (32:) s
+52.2 322 M
+(            contin = false;) s
+25.8 310 M (33:) s
+52.2 310 M
+(         }else {) s
+25.8 298 M (34:) s
+52.2 298 M
+(            array[slot] = array[slot - 1];) s
+25.8 286 M (35:) s
+52.2 286 M
+(            slot = slot - 1;) s
+25.8 274 M (36:) s
+52.2 274 M
+(         }) s
+25.8 262 M (37:) s
+52.2 262 M
+(      }) s
+25.8 250 M (38:) s
+52.2 250 M
+(      array[slot] = element;) s
+25.8 238 M (39:) s
+52.2 238 M
+(      sorted = sorted + 1;) s
+25.8 226 M (40:) s
+52.2 226 M
+(   }) s
+25.8 214 M (41:) s
+52.2 214 M
+(}) s
+25.8 202 M (42:) s
+25.8 190 M (43:) s
+52.2 190 M
+(void print_array \(string label, int size, string[] array\) {) s
+25.8 178 M (44:) s
+52.2 178 M
+(   endl \(\);) s
+25.8 166 M (45:) s
+52.2 166 M
+(   puts \(label\);) s
+25.8 154 M (46:) s
+52.2 154 M
+(   puts \(":\\n"\);) s
+25.8 142 M (47:) s
+52.2 142 M
+(   int index = 0;) s
+25.8 130 M (48:) s
+52.2 130 M
+(   while \(index < size\) {) s
+25.8 118 M (49:) s
+52.2 118 M
+(      puts \(array[index]\);) s
+25.8 106 M (50:) s
+52.2 106 M
+(      endl \(\);) s
+25.8 94 M (51:) s
+52.2 94 M
+(      index = index + 1;) s
+25.8 82 M (52:) s
+52.2 82 M
+(   }) s
+25.8 70 M (53:) s
+52.2 70 M
+(}) s
+25.8 58 M (54:) s
+25.8 46 M (55:) s
+52.2 46 M
+(string[] argv = getargv \(\);) s
+25.8 34 M (56:) s
+52.2 34 M
+(int argc = 0;) s
+25.8 22 M (57:) s
+52.2 22 M
+(while \(argv[argc] != null\) argc = argc + 1;) s
+25.8 10 M (58:) s
+52.2 10 M
+(print_array \("unsorted", argc, argv\);) s
+_R
+S
+%%Page: (2) 26
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 2 def
+/fname (53-insertionsort.oc) def
+/fdir () def
+/ftail (53-insertionsort.oc) def
+% User defined strings:
+/pagenumstr (2) def
+/moddatestr (10/23/14) def
+/pagecountstr (/2) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+25.8 694 M (59:) s
+52.2 694 M
+(insertion_sort \(argc, argv\);) s
+25.8 682 M (60:) s
+52.2 682 M
+(print_array \("sorted", argc, argv\);) s
+25.8 670 M (61:) s
+_R
+S
+%%Page: (1) 27
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (90-c8q.oc) def
+/fdir () def
+/ftail (90-c8q.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (11/17/11) def
+/pagecountstr (/1) def
+/modtimestr (21:20:43) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(char O[9];Q\(l,b,d\){int o=8,p=1,q=1<<) s
+32.4 682 M (2:) s
+52.2 682 M
+(l|1<<22-l;for\(;l>7?!write\(1,O,9\):o--) s
+32.4 670 M (3:) s
+52.2 670 M
+(;\)O[l]=56-o,b&p|d&q||Q\(l+1,b|p,d|q\),) s
+32.4 658 M (4:) s
+52.2 658 M
+(p*=2,q*=2;}main\(\){O[8]=10;Q\(0,0,0\);}) s
+_R
+S
+%%Page: (1) 28
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (91-typecheck.oc) def
+/fdir () def
+/ftail (91-typecheck.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 91-typecheck.oc,v 1.1 2011-11-07 12:09:34-08 - - $) s
+32.4 682 M (2:) s
+52.2 682 M
+(//) s
+32.4 670 M (3:) s
+52.2 670 M
+(// This file should scan and parse correctly, ) s
+32.4 658 M (4:) s
+52.2 658 M
+(// but fail to type check.) s
+32.4 646 M (5:) s
+52.2 646 M
+(//) s
+32.4 634 M (6:) s
+32.4 622 M (7:) s
+52.2 622 M
+(int[] a = null;) s
+32.4 610 M (8:) s
+52.2 610 M
+(reference[] a = new string[10];) s
+32.4 598 M (9:) s
+52.2 598 M
+(void foo \(\);) s
+25.8 586 M (10:) s
+52.2 586 M
+(void foo \(int a\);) s
+25.8 574 M (11:) s
+52.2 574 M
+(void foo \(int[] a, int[] b\) {int x = a + b;}) s
+25.8 562 M (12:) s
+52.2 562 M
+(struct foo { int a; int b; }) s
+25.8 550 M (13:) s
+25.8 538 M (14:) s
+52.2 538 M
+(a + b;) s
+25.8 526 M (15:) s
+52.2 526 M
+(f \(\);) s
+25.8 514 M (16:) s
+52.2 514 M
+(f \(x, y+3, z\);) s
+25.8 502 M (17:) s
+52.2 502 M
+(foo + bar;) s
+25.8 490 M (18:) s
+52.2 490 M
+(a = b = c = d;) s
+25.8 478 M (19:) s
+52.2 478 M
+(test = abc + def + ghi;) s
+25.8 466 M (20:) s
+52.2 466 M
+(this + 23 * a + "hello";) s
+25.8 454 M (21:) s
+52.2 454 M
+(while \(a < b\) f = f + 1;) s
+25.8 442 M (22:) s
+52.2 442 M
+(return 3 + 4;) s
+25.8 430 M (23:) s
+52.2 430 M
+(a[i] = b[j];) s
+25.8 418 M (24:) s
+52.2 418 M
+(return;) s
+25.8 406 M (25:) s
+52.2 406 M
+(while \(true\) {a = 3; b = 4; }) s
+25.8 394 M (26:) s
+52.2 394 M
+(if \(a == b\) f \(x\);) s
+25.8 382 M (27:) s
+52.2 382 M
+(if \(a != b\) y = 3; else f \(y, z\);) s
+25.8 370 M (28:) s
+_R
+S
+%%Page: (1) 29
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (92-uncomment.oc) def
+/fdir () def
+/ftail (92-uncomment.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(/*) s
+32.4 682 M (2:) s
+52.2 682 M
+(This is an unterminated comment.) s
+32.4 670 M (3:) s
+52.2 670 M
+(It would cause cpp to error out.) s
+32.4 658 M (4:) s
+52.2 658 M
+(When cpp returns a non-zero exit code,) s
+32.4 646 M (5:) s
+52.2 646 M
+(so should your compiler.) s
+32.4 634 M (6:) s
+52.2 634 M
+($Id: 92-uncomment.oc,v 1.1 2011-09-15 18:50:16-07 - - $) s
+32.4 622 M (7:) s
+32.4 610 M (8:) s
+52.2 610 M
+(int main \(int argc, char **argv\) {) s
+_R
+S
+%%Page: (1) 30
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (93-semantics.oc) def
+/fdir () def
+/ftail (93-semantics.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 93-semantics.oc,v 1.1 2011-11-01 22:02:19-07 - - $) s
+32.4 682 M (2:) s
+52.2 682 M
+(// This code should scan and parse correctly,) s
+32.4 670 M (3:) s
+52.2 670 M
+(// but fail to type check.) s
+32.4 658 M (4:) s
+52.2 658 M
+(int[] a = null;) s
+32.4 646 M (5:) s
+52.2 646 M
+(int[] b = null;) s
+32.4 634 M (6:) s
+52.2 634 M
+(int c = a + b; // can't add arrays) s
+32.4 622 M (7:) s
+52.2 622 M
+(void[] f\(\) {}; // can't hae void[]) s
+32.4 610 M (8:) s
+52.2 610 M
+(void n = null; // can't have void vars) s
+32.4 598 M (9:) s
+52.2 598 M
+(bool x = a < b; // can't compare pointers <) s
+25.8 586 M (10:) s
+52.2 586 M
+(bool y = a==b; // this is ok) s
+_R
+S
+%%Page: (1) 31
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (94-syntax.oc) def
+/fdir () def
+/ftail (94-syntax.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 94-syntax.oc,v 1.1 2011-11-01 22:02:19-07 - - $) s
+32.4 682 M (2:) s
+52.2 682 M
+(k) s
+32.4 670 M (3:) s
+52.2 670 M
+(int f\(\) {) s
+32.4 658 M (4:) s
+52.2 658 M
+(int a = ;) s
+32.4 646 M (5:) s
+52.2 646 M
+(return foo;) s
+32.4 634 M (6:) s
+52.2 634 M
+(public static void main \(String[] args\) {) s
+32.4 622 M (7:) s
+52.2 622 M
+(   System.exit \(255\);) s
+32.4 610 M (8:) s
+52.2 610 M
+(}) s
+32.4 598 M (9:) s
+_R
+S
+%%Page: (1) 32
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (95-cobol.oc) def
+/fdir () def
+/ftail (95-cobol.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// $Id: 95-cobol.oc,v 1.1 2011-11-01 22:02:19-07 - - $) s
+32.4 682 M (2:) s
+32.4 670 M (3:) s
+52.2 670 M
+(000100 IDENTIFICATION DIVISION.) s
+32.4 658 M (4:) s
+52.2 658 M
+(000200 PROGRAM-ID.     HELLOWORLD.) s
+32.4 646 M (5:) s
+52.2 646 M
+(000300) s
+32.4 634 M (6:) s
+52.2 634 M
+(000400*) s
+32.4 622 M (7:) s
+52.2 622 M
+(000500 ENVIRONMENT DIVISION.) s
+32.4 610 M (8:) s
+52.2 610 M
+(000600 CONFIGURATION SECTION.) s
+32.4 598 M (9:) s
+52.2 598 M
+(000700 SOURCE-COMPUTER. RM-COBOL.) s
+25.8 586 M (10:) s
+52.2 586 M
+(000800 OBJECT-COMPUTER. RM-COBOL.) s
+25.8 574 M (11:) s
+52.2 574 M
+(000900) s
+25.8 562 M (12:) s
+52.2 562 M
+(001000 DATA DIVISION.) s
+25.8 550 M (13:) s
+52.2 550 M
+(001100 FILE SECTION.) s
+25.8 538 M (14:) s
+52.2 538 M
+(001200) s
+25.8 526 M (15:) s
+52.2 526 M
+(100000 PROCEDURE DIVISION.) s
+25.8 514 M (16:) s
+52.2 514 M
+(100100) s
+25.8 502 M (17:) s
+52.2 502 M
+(100200 MAIN-LOGIC SECTION.) s
+25.8 490 M (18:) s
+52.2 490 M
+(100300 BEGIN.) s
+25.8 478 M (19:) s
+52.2 478 M
+(100400     DISPLAY " " LINE 1 POSITION 1 ERASE EOS.) s
+25.8 466 M (20:) s
+52.2 466 M
+(100500     DISPLAY "Hello world!" LINE 15 POSITION 10.) s
+25.8 454 M (21:) s
+52.2 454 M
+(100600     STOP RUN.) s
+25.8 442 M (22:) s
+52.2 442 M
+(100700 MAIN-LOGIC-EXIT.) s
+25.8 430 M (23:) s
+52.2 430 M
+(100800     EXIT.) s
+_R
+S
+%%Page: (1) 33
+%%BeginPageSetup
+_S
+38 24 translate
+/pagenum 1 def
+/fname (96-unterminated.oc) def
+/fdir () def
+/ftail (96-unterminated.oc) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (10/23/14) def
+/pagecountstr (/1) def
+/modtimestr (15:07:55) def
+/user_header_p true def
+/user_header_left_str ($cmps104a-wm/Assignments/oc-programs/) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+column_borders
+do_header
+32.4 694 M (1:) s
+52.2 694 M
+(// Unterminated strings.) s
+32.4 682 M (2:) s
+52.2 682 M
+(// $Id: 96-unterminated.oc,v 1.3 2012-12-03 13:27:56-08 - - $) s
+32.4 670 M (3:) s
+32.4 658 M (4:) s
+52.2 658 M
+(string t = "\\*/";) s
+32.4 646 M (5:) s
+52.2 646 M
+(string s = "abc;) s
+32.4 634 M (6:) s
+52.2 634 M
+(char c = 'a;) s
+32.4 622 M (7:) s
+52.2 622 M
+(s = "abcd\\";) s
+32.4 610 M (8:) s
+52.2 610 M
+(s = "abc|\\) s
+32.4 598 M (9:) s
+52.2 598 M
+(;) s
+25.8 586 M (10:) s
+52.2 586 M
+(int 23foobar;) s
+_R
+S
+%%Trailer
+%%Pages: 33
+%%DocumentNeededResources: font Times-Roman Courier-Bold Times-Bold 
+%%EOF

@@ -1,0 +1,8 @@
+auxlib.o: auxlib.cpp auxlib.h
+oc.o: oc.cpp auxlib.h stringset.h
+stringset.o: stringset.cpp stringset.h
+auxlib.o: auxlib.h
+stringset.o: stringset.h
+auxlib.o: auxlib.cpp auxlib.h
+oc.o: oc.cpp auxlib.h stringset.h
+stringset.o: stringset.cpp stringset.h

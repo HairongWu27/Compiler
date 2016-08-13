@@ -1,0 +1,6 @@
+#!/bin/sh
+# $Id: mk,v 1.5 2014-10-23 15:07:55-07 - - $
+cid + $0 *.oh *.c *.oc
+mkc -c *.c
+killps ghostview gs gv
+mkpspdf Listing-oc.ps *.oh *.c *.oc

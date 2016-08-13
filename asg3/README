@@ -1,0 +1,22 @@
+//*******************************************************
+//          README
+//ID: Hairong Wu
+//TIME: 5/9/2015
+//CMPS 104 Assignment 3
+//******************************************************
+Simple compiler:  Translate exprs to stack machine insns.
+
+This program using LALR(1) grammar for oc. In order to handle ambiguity, precedence
+ and associativity is defined. For TOK_IDENT, some of them are substituted by 
+TOK_FIELD, TOK_DECLID and TOK_TYPEID.TOK_FUNCTION become the root of function. 
+It contain three children: identifier, parameter list and block. If there is no 
+block, the root switch to TOK_PROTOTYPE. Identifier include basetype and DECLID.
+PARAMLIST include all parameters. BLOCK include everything inside { }. It include 
+0 or more statements. Statement can have other blocks, vardecl, while block, ifelse
+ block, return statement and expression. Expression handle all binoperator, uninary
+ operator, allocator, function call, variable declaration, constant declaration or
+ more expression.
+This program will generater three output files: xxx.str, xxx.tok and xxx.ast. Yyparser() is called and dumped into xxx.ast file.   
+
+
+

@@ -1,0 +1,6 @@
+#1/bin/sh
+echo first part
+sed 's/^/   /' oclib.c | cat -nv | sed '/\^L/,$d'
+echo second part
+sed 's/^/   /' oclib.c | cat -nv | sed -n '/\^L/,$p'
+echo end

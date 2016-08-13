@@ -1,0 +1,16 @@
+stringset[   1]:     831242270113464010 0x1bba5a8->"t"
+stringset[   2]:   13497578857207247412 0x1bba558->"string"
+stringset[   3]:   11597697714117577063 0x1bba5f8->"="
+stringset[   4]:   14162235402040553372 0x1bba9d8->"23foobar;"
+                   10959529184379665549 0x1bba788->"c"
+stringset[   6]:    7128341810318723457 0x1bba828->""abcd\";"
+stringset[   7]:    6274210351723102623 0x1bba648->""\*/";"
+stringset[   9]:     342363981814211588 0x1bba738->"char"
+stringset[  14]:    6414370376350317282 0x1bba698->"s"
+stringset[  18]:   13863130522027473470 0x1bba6e8->""abc;"
+stringset[  20]:   11980149856480239217 0x1bba878->""abc|;"
+stringset[  21]:   12597418120160561823 0x1bba988->"int"
+                   15106541837140835242 0x1bba7d8->"'a;"
+load_factor = 0.565
+bucket_count = 23
+max_bucket_size = 2

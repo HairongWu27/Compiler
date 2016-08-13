@@ -1,0 +1,16 @@
+//*******************************************************
+//          README
+//ID: Hairong Wu
+//TIME: 5/26/2015
+//CMPS 104 Assignment 4
+//******************************************************
+Simple compiler:  Translate exprs to stack machine insns.
+
+This program travers the ASTree and generate symbol_table. It check 
+the grammar is valid or not. If yes, push the valid variable function 
+name into symbol_table. It also update the node of ASTree and adds 
+more infomation to node.  
+
+
+
+

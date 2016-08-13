@@ -1,0 +1,10 @@
+//*******************************************************
+//          README
+//ID: Hairong Wu
+//TIME: 4/22/2015
+//CMPS 104 Assignment 2
+//******************************************************
+Simple compiler:  Translate exprs to stack machine insns.
+
+This program can generate tokens which include special symbols, reserved words,identifiers, integer constants, character constants, string constants, invalid identifiers and invalid char and string. Function yylex() is being called to obtain those token. Those token is dumped to a xxx.tok file. Information about each token is also dumped into the file. Those information includes index of filename vector, line number, character offset, symbol, name of token and lexical information. xxx.str file is also generated. 
+

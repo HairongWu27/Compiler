@@ -1,0 +1,10 @@
+/**************************************************************************************
+time: 2015-4-11
+Name: Hairong Wu
+ This is assignment 1 of 104 class. Use cpp to scan a xxx.oc file. Read the 
+new input by line. Then token each line to strings. Insert the strings to an unordered  set. Finally, dump the set into an xxx.str file. All files will generate an oc 
+executable file. When run this oc program, it can take -ly,-@ and -D options. If there are any options, then turn on corresponding flag and run corresponding debug program.oc 
+executable program will accept an input file ending with .oc. Such input file will be filtered by cpp. The new file will be input file for oc program.  
+program.str
+
+**************************************************************************************/ 
